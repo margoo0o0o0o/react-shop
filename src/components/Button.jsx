@@ -4,7 +4,7 @@ export default function Button({ children, variant = "primary", className = "", 
   return (
     // базовый стиль, подстановка вариант, класс нейм, пропс если еще что
     <button className={`btn btn--${variant} ${className}`} {...props}>
-      {children} // текст
+      {children} 
     </button>
   );
 }
