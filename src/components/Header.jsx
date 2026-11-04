@@ -1,7 +1,7 @@
 import "./Header.css";
 
 // компонент шапки, параметр - пропс, кол-во товаров в корзине 0 - по умолчанию
-export default function Header({ cartCount = 0 }) {
+export default function Header({ cartCount = 0, searchQuery,  onSearchChange}) {
   return (
     <header className="header"> {/* оборачиваем в тег */}
       <div className="container header__inner"> {/* класс ограничивает ширину и центрирует шапку */}
@@ -12,6 +12,8 @@ export default function Header({ cartCount = 0 }) {
           type="search"
           placeholder="Search essentials, groceries and more..."
           aria-label="Поиск товаров"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)} 
         />
         
         {/* кнопка корзины */}

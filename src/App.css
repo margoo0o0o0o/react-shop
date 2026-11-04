@@ -14,3 +14,26 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--space-3);
 }
+
+/* панель с фильтрами (категории и сортировка) */
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.filters__select {
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  outline: none;
+}
+
+.filters__select:focus-visible {
+  border-color: var(--color-accent);
+}
