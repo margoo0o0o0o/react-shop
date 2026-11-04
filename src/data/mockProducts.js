@@ -1,1 +1,1 @@
-export const mockCategories = ["Groceries", "Beauty", "Fragrances", "Furniture", "Electronics"];
+export const mockCategories = ["groceries", "beauty", "fragrances", "furniture", "electronics"];
