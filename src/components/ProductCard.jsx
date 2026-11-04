@@ -1,8 +1,8 @@
 import Button from "./Button";
 import "./ProductCard.css";
 
-// компонент карточки товара, пропс product - это объект с данными одного товара
-export default function ProductCard({ product }) {
+// компонент карточки товара, пропс product - это объект с данными одного товара, onAddToCart - функция добавления в корзину
+export default function ProductCard({ product, onAddToCart }) {
   
   // достаем нужные поля из объекта товара (деструктуризация)
   const { title, price, discountPercentage, rating, thumbnail } = product;
@@ -46,8 +46,11 @@ export default function ProductCard({ product }) {
 
         <div className="card__action"> {/* блок для кнопки (прижат к низу через CSS) */}
           
-          <Button variant="outline" className="btn--full">В корзину</Button> 
-          {/* наша переиспользуемая кнопка: variant="outline" делает ее прозрачной, className="btn--full" растягивает на всю ширину */}
+          {/* наша переиспользуемая кнопка, при клике вызываем функцию и передаем товар */}
+          <Button variant="outline" className="btn--full" onClick={() => onAddToCart(product)}>
+            В корзину
+          </Button> 
+          
         </div>
         
       </div>

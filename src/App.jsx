@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
 import ProductCard from "./components/ProductCard";
+import Cart from "./components/Cart"; // подключаем панель корзины
 // достаем массив с названиями категорий
 import { mockCategories } from "./data/mockProducts"; 
 import "./App.css";
@@ -20,6 +21,15 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   // для сортировки, в 1 - .., в 2 - ф-2ия для смены способа сортировки, изначальное значение по умолчанию
   const [sortBy, setSortBy] = useState("default");
+
+  // корзина
+  // 1 - массив товаров в корзине, 2 - ф-ция для его изменения. Пытаемся сразу достать из localStorage при старте
+  const [cartItems, setCartItems] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  // 1 - открыта ли корзина (тру/фолз), 2 - ф-ция для открытия/закрытия, изначально закрыта
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // вызываем useEffect внутри код, который должен выполниться, когда компонент появится на экране
   useEffect(() => {
@@ -56,7 +66,52 @@ export default function App() {
     fetchProducts(); // запускаем функцию
   }, []); // пустой массив [] для одного раза
 
-  
+  // логика сохранения корзины
+  // каждый раз, когда корзина меняется, сохраняем её в память браузера
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cartItems)); // превращаем массив в строку и сохраняем
+  }, [cartItems]); // следим за изменениями cartItems
+
+  // ф-ция добавления товара в корзину
+  const addToCart = (product) => {
+    setCartItems((prevItems) => {
+      // ищем, есть ли уже такой товар в корзине
+      const existingItem = prevItems.find((item) => item.id === product.id);
+      if (existingItem) {
+        // если есть - увеличиваем его количество на 1
+        return prevItems.map((item) =>
+          item.id === product.id ? { ...item, count: item.count + 1 } : item
+        );
+      }
+      // если нет - добавляем новый товар с count: 1
+      return [...prevItems, { ...product, count: 1 }];
+    });
+    setIsCartOpen(true); // открываем корзину при добавлении
+  };
+
+  // ф-ция удаления товара из корзины
+  const removeFromCart = (id) => {
+    // оставляем все товары, кроме того, чей id мы передали
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
+
+  // ф-ция изменения количества (+1 или -1)
+  const updateQuantity = (id, delta) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) => {
+        if (item.id === id) {
+          const newCount = item.count + delta; // считаем новое количество
+          if (newCount <= 0) return null; // если 0 или меньше - удаляем (вернем null)
+          return { ...item, count: newCount }; // иначе обновляем
+        }
+        return item;
+      }).filter(Boolean) // убираем все null из массива
+    );
+  };
+
+  // считаем общее количество товаров для шапки
+  const totalCartCount = cartItems.reduce((sum, item) => sum + item.count, 0);
+
   // фильтруем товары (поиск + категория)
   // переменная для товаров, которык прошли проверку, функция фильтра и начало цикла
   let filteredProducts = products.filter((product) => {
@@ -81,9 +136,10 @@ export default function App() {
 
   return (
     <>
-      {/* Выводим шапку, передаем 0 товаров в корзине, и данные для поиска */}
+      {/* Выводим шапку, передаем реальное кол-во товаров в корзине и функцию открытия */}
       <Header 
-        cartCount={0}
+        cartCount={totalCartCount}
+        onCartClick={() => setIsCartOpen(true)}
         searchQuery={searchQuery} 
         onSearchChange={setSearchQuery}
       />  
@@ -138,7 +194,11 @@ export default function App() {
           {/* если загрузка прошла и ошибки нет - рисуем отфильтрованные карточки */}
           {!isLoading && !error && filteredProducts.length > 0 &&
             filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                onAddToCart={addToCart} // передаем функцию добавления в корзину
+              />
             ))}
 
           {/* если ничего не найдено - показываем сообщение */}
@@ -147,6 +207,15 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Выводим панель корзины. Она сама скроется, если isOpen = false */}
+      <Cart 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} // функция закрытия
+        items={cartItems} 
+        onRemove={removeFromCart}
+        onUpdateQuantity={updateQuantity}
+      />
     </>
   );
 }
