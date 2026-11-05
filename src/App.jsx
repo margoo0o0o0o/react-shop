@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
 import ProductCard from "./components/ProductCard";
 import Cart from "./components/Cart"; // подключаем панель корзины
+import ProductModal from "./components/ProductModal"; // подключаем модальное окно товара
 // достаем массив с названиями категорий
 import { mockCategories } from "./data/mockProducts"; 
 import "./App.css";
@@ -30,6 +31,10 @@ export default function App() {
   });
   // 1 - открыта ли корзина (тру/фолз), 2 - ф-ция для открытия/закрытия, изначально закрыта
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // модальное окно
+  // 1 - выбранный товар для модалки (изначально null - окно закрыто), 2 - ф-ция для его смены
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // вызываем useEffect внутри код, который должен выполниться, когда компонент появится на экране
   useEffect(() => {
@@ -198,6 +203,7 @@ export default function App() {
                 key={product.id} 
                 product={product} 
                 onAddToCart={addToCart} // передаем функцию добавления в корзину
+                onCardClick={setSelectedProduct} // передаем функцию открытия модалки (сохраняем товар в стейт)
               />
             ))}
 
@@ -215,6 +221,13 @@ export default function App() {
         items={cartItems} 
         onRemove={removeFromCart}
         onUpdateQuantity={updateQuantity}
+      />
+
+      {/* Выводим модалку. Передаем туда выбранный товар (если null - она скроется) */}
+      <ProductModal 
+        product={selectedProduct} 
+        onClose={() => setSelectedProduct(null)} // функция закрытия модалки
+        onAddToCart={addToCart} // передаем функцию добавления в корзину
       />
     </>
   );

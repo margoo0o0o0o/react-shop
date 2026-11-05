@@ -1,8 +1,8 @@
 import Button from "./Button";
 import "./ProductCard.css";
 
-// компонент карточки товара, пропс product - это объект с данными одного товара, onAddToCart - функция добавления в корзину
-export default function ProductCard({ product, onAddToCart }) {
+// компонент карточки товара, 1 - product (объект с данными), 2 - onAddToCart (добавление в корзину), 3 - onCardClick (открытие модалки)
+export default function ProductCard({ product, onAddToCart, onCardClick }) {
   
   // достаем нужные поля из объекта товара (деструктуризация)
   const { title, price, discountPercentage, rating, thumbnail } = product;
@@ -14,7 +14,8 @@ export default function ProductCard({ product, onAddToCart }) {
   const save = oldPrice - price;
 
   return (
-    <article className="card"> {/* карточка товара (семантический тег) */}
+    // карточка товара (семантический тег). onClick открывает модалку, style меняет курсор на руку
+    <article className="card" onClick={() => onCardClick(product)} style={{ cursor: "pointer" }}>
       
       <div className="card__media"> {/* блок для фото и бейджа скидки */}
         
@@ -46,11 +47,15 @@ export default function ProductCard({ product, onAddToCart }) {
 
         <div className="card__action"> {/* блок для кнопки (прижат к низу через CSS) */}
           
-          {/* наша переиспользуемая кнопка, при клике вызываем функцию и передаем товар */}
-          <Button variant="outline" className="btn--full" onClick={() => onAddToCart(product)}>
-            В корзину
-          </Button> 
-          
+          {/* обертка для кнопки с stopPropagation, чтобы клик по кнопке не открывал модалку */}
+          <div onClick={(e) => e.stopPropagation()}>
+            
+            {/* наша переиспользуемая кнопка, при клике вызываем функцию добавления */}
+            <Button variant="outline" className="btn--full" onClick={() => onAddToCart(product)}>
+              В корзину
+            </Button> 
+            
+          </div>
         </div>
         
       </div>
