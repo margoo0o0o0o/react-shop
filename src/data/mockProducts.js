@@ -1,1 +1,0 @@
-export const mockCategories = ["groceries", "beauty", "fragrances", "furniture", "electronics"];
