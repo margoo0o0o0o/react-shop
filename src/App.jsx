@@ -1,17 +1,16 @@
 // UseState - ф-ция для хранения данных, автоматические переписывается, UseEffect - ф-ция, для выполнения кода при загрузке страницы
 import { useState, useEffect } from "react"; 
 import Header from "./components/Header";
-import CategoryNav from "./components/CategoryNav";
 import ProductCard from "./components/ProductCard";
 import Cart from "./components/Cart"; // подключаем панель корзины
 import ProductModal from "./components/ProductModal"; // подключаем модальное окно товара
-// достаем массив с названиями категорий
-import { mockCategories } from "./data/mockProducts"; 
 import "./App.css";
 
 export default function App() {
   // состояние для товаров (изначально пустой массив), 1 - переменная, гле хрантся данные, 2 - ф-ция, которая меняет эту переменную
   const [products, setProducts] = useState([]); 
+  // состояние для категорий (тоже пустой массив), грузим их с сервера
+  const [categories, setCategories] = useState([]); 
   // состояние для загрузки, 1 - переменная тру либо фолз для состояния загрузки, 2 - ф-2ия, изначально тру, потому что данные еще не пришли и загрузка
   const [isLoading, setIsLoading] = useState(true); 
   // состояние для ошибки, в 1 - хранится текст ошибки, 2 - ф-ция, изначально ошибки нет поэтому null
@@ -26,8 +25,12 @@ export default function App() {
   // корзина
   // 1 - массив товаров в корзине, 2 - ф-ция для его изменения. Пытаемся сразу достать из localStorage при старте
   const [cartItems, setCartItems] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const savedCart = localStorage.getItem("cart");
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch {
+      return []; // если строка битая, возвращаем пустой массив
+    }
   });
   // 1 - открыта ли корзина (тру/фолз), 2 - ф-ция для открытия/закрытия, изначально закрыта
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -39,28 +42,36 @@ export default function App() {
   // вызываем useEffect внутри код, который должен выполниться, когда компонент появится на экране
   useEffect(() => {
     // создаем функцию для запроса данных, async - ключевое слово, что внутри ф-ции операции которые требут времени
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true); // включаем загрузку, текст Загрзука
-        // делаем запрос на сервер (ждем ответ), responce - посылка с ответом 
-        const response = await fetch("https://dummyjson.com/products?limit=100");
+        
+        // 1. делаем запрос на сервер для товаров (ждем ответ), responce - посылка с ответом 
+        const productsRes = await fetch("https://dummyjson.com/products?limit=100");
         
         // если сервер вернул ошибку
-        if (!response.ok) {
+        if (!productsRes.ok) {
           throw new Error("Ошибка сервера");
         }
 
         // превращаем ответ сервера в удобный объект JS с временем
-        const data = await response.json();
+        const productsData = await productsRes.json();
         
         // сохраняем полученные 100 товаров в состояние products
-        setProducts(data.products); 
+        setProducts(productsData.products); 
+
+        // 2. делаем запрос на сервер для категорий
+        const categoriesRes = await fetch("https://dummyjson.com/products/category-list");
+        const categoriesData = await categoriesRes.json();
+        
+        // сохраняем полученные категории в состояние categories
+        setCategories(categoriesData); 
         
       } catch (err) {
         // выводим реальную ошибку в консоль (чтобы VS Code не ругался и для отладки)
         console.error(err); 
         // показываем пользователю понятный текст
-        setError("Не удалось загрузить товары. Проверьте интернет.");
+        setError("Не удалось загрузить данные. Проверьте интернет.");
       } finally {
         // finally сработает в любом случае (даже если была ошибка)
         // выключаем загрузку, чтобы скрыть текст "Загрузка..."
@@ -68,7 +79,7 @@ export default function App() {
       }
     };
 
-    fetchProducts(); // запускаем функцию
+    fetchData(); // запускаем функцию
   }, []); // пустой массив [] для одного раза
 
   // логика сохранения корзины
@@ -89,7 +100,14 @@ export default function App() {
         );
       }
       // если нет - добавляем новый товар с count: 1
-      return [...prevItems, { ...product, count: 1 }];
+      // сохраняем только нужные поля, а не весь объект
+      return [...prevItems, { 
+        id: product.id, 
+        title: product.title, 
+        price: product.price, 
+        thumbnail: product.thumbnail, 
+        count: 1 
+      }];
     });
     setIsCartOpen(true); // открываем корзину при добавлении
   };
@@ -149,13 +167,6 @@ export default function App() {
         onSearchChange={setSearchQuery}
       />  
       
-      {/* выводим компонент меню категорий, передаем активную категорию и функцию для смены */}
-      <CategoryNav 
-        categories={mockCategories} 
-        active={selectedCategory} 
-        onSelectCategory={setSelectedCategory} 
-      /> 
-      
       <main className="container main">
         <h1 className="main__title">
           Grab the best deal on <span className="main__accent">Beauty</span>
@@ -169,7 +180,7 @@ export default function App() {
             onChange={(e) => setSelectedCategory(e.target.value)} // событие если нажимаем на другой пункт
           >
             <option value="all">Все категории</option>
-            {mockCategories.map(cat => ( // массив, cat - текущее значение
+            {categories.map(cat => ( // используем categories, cat - текущее значение
               <option key={cat} value={cat}>
                 {cat.charAt(0).toUpperCase() + cat.slice(1)} {/* Делаем первую букву заглавной */}
               </option>
@@ -194,7 +205,7 @@ export default function App() {
           {isLoading && <p>Загрузка товаров...</p>}
           
           {/* если есть ошибка, показываем ее красным цветом */}
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <p className="error-message">{error}</p>}
           
           {/* если загрузка прошла и ошибки нет - рисуем отфильтрованные карточки */}
           {!isLoading && !error && filteredProducts.length > 0 &&

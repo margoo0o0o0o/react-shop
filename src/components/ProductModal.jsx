@@ -1,25 +1,35 @@
-import { useEffect } from "react"; // подключаем хук для прослушивания клавиатуры
+import { useState, useEffect } from "react"; 
 import "./ProductModal.css";
 import Button from "./Button";
 
-// компонент модального окна (подробности о товаре), 1 - товар, 2 - ф-ция закрытия, 3 - ф-ция добавления в корзину
+// компонент модального окна (подробности о товаре)
 export default function ProductModal({ product, onClose, onAddToCart }) {
-  
-  // Добавляем слушатель на клавишу Esc, чтобы закрывать окно (хуки всегда должны быть вверху!)
+  // 1 - текущая картинка, которую видит пользователь, 2 - ф-ция для её смены
+  const [activeImage, setActiveImage] = useState("");
+
+  // Когда открывается новый товар, сбрасываем активную картинку на первую из массива
   useEffect(() => {
-    // ф-ция которая сработает при нажатии на клавишу
+    if (product && product.images && product.images.length > 0) {
+      // отключаем проверку линтера для этой строчки
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveImage(product.images[0]);
+    }
+  }, [product]); // добавили product в зависимости
+
+  // Слушатель на клавишу Esc
+  useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") onClose(); // если нажали Esc - закрываем
+      if (e.key === "Escape") onClose();
     };
-    // вешаем слушатель на все окно
     window.addEventListener("keydown", handleKeyDown);
-
-    // Очищаем слушатель, когда окно закрывается (чтобы не было утечек памяти)
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]); // следим за ф-цией закрытия
+  }, [onClose]);
 
-  // ТОЛЬКО ПОСЛЕ ХУКОВ: Если товара нет (окно закрыто), ничего не рисуем
+  // Если товара нет (окно закрыто), ничего не рисуем
   if (!product) return null;
+
+  // Берем массив фото (если вдруг images пустой, берем хотя бы thumbnail)
+  const images = product.images && product.images.length > 0 ? product.images : [product.thumbnail];
 
   return (
     // Клик по темному фону (overlay) закрывает окно
@@ -32,9 +42,29 @@ export default function ProductModal({ product, onClose, onAddToCart }) {
         <button className="modal-close" onClick={onClose}>×</button>
 
         <div className="modal-body">
-          {/* Левая часть - картинка товара */}
-          <div className="modal-image">
-            <img src={product.thumbnail} alt={product.title} />
+          
+          {/* Левая часть - галерея */}
+          <div className="modal-images-section">
+            
+            {/* Главная большая картинка */}
+            <div className="modal-main-image">
+              <img src={activeImage} alt={product.title} />
+            </div>
+
+            {/* Лента с превьюшками (показываем, только если фото больше одного) */}
+            {images.length > 1 && (
+              <div className="modal-thumbnails">
+                {images.map((img, index) => (
+                  <img 
+                    key={index} 
+                    src={img} 
+                    alt={`${product.title} ${index}`} 
+                    onClick={() => setActiveImage(img)} // при клике меняем главную
+                    className={activeImage === img ? "active-thumbnail" : ""} // подсвечиваем выбранную
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Правая часть - текст и кнопка */}

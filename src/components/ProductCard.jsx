@@ -14,16 +14,16 @@ export default function ProductCard({ product, onAddToCart, onCardClick }) {
   const save = oldPrice - price;
 
   return (
-    // карточка товара (семантический тег). onClick открывает модалку, style меняет курсор на руку
-    <article className="card" onClick={() => onCardClick(product)} style={{ cursor: "pointer" }}>
+    // карточка товара (семантический тег). onClick открывает модалку (стиль курсора теперь в CSS)
+    <article className="card" onClick={() => onCardClick(product)}>
       
-      <div className="card__media"> {/* блок для фото и бейджа скидки */}
+      <div className="card__media">
+        <img className="card__image" src={thumbnail} alt={title} loading="lazy" />
         
-        <img className="card__image" src={thumbnail} alt={title} loading="lazy" /> 
-        {/* картинка товара: src - ссылка, alt - текст если фото не загрузится, loading="lazy" - загрузка только при прокрутке */}
-        
-        <span className="card__badge">{Math.round(discountPercentage)}% OFF</span> 
-        {/* синий бейджик в углу: Math.round округляет процент скидки до целого */}
+        {/* показываем бейдж только если округленная скидка больше 0 */}
+        {Math.round(discountPercentage) > 0 && (
+          <span className="card__badge">{Math.round(discountPercentage)}% OFF</span> 
+        )}
       </div>
 
       <div className="card__body"> {/* блок с текстом и кнопкой */}
