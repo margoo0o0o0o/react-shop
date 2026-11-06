@@ -1,245 +1,30 @@
-// UseState - ф-ция для хранения данных, автоматические переписывается, UseEffect - ф-ция, для выполнения кода при загрузке страницы
-import { useState, useEffect } from "react"; 
+import { Routes, Route } from "react-router";
 import Header from "./components/Header";
-import ProductCard from "./components/ProductCard";
-import Cart from "./components/Cart"; // подключаем панель корзины
-import ProductModal from "./components/ProductModal"; // подключаем модальное окно товара
+import Home from "./pages/Home";
+import Product from "./pages/Product";
+import Cart from "./pages/Cart";
+import NotFound from "./pages/NotFound";
+import { useCart } from "./context/CartContext";
 import "./App.css";
 
 export default function App() {
-  // состояние для товаров (изначально пустой массив), 1 - переменная, гле хрантся данные, 2 - ф-ция, которая меняет эту переменную
-  const [products, setProducts] = useState([]); 
-  // состояние для категорий (тоже пустой массив), грузим их с сервера
-  const [categories, setCategories] = useState([]); 
-  // состояние для загрузки, 1 - переменная тру либо фолз для состояния загрузки, 2 - ф-2ия, изначально тру, потому что данные еще не пришли и загрузка
-  const [isLoading, setIsLoading] = useState(true); 
-  // состояние для ошибки, в 1 - хранится текст ошибки, 2 - ф-ция, изначально ошибки нет поэтому null
-  const [error, setError] = useState(null); 
-  // состояние для поиска,  в 1 - хранится текст, введеный в поиск, 2 - ф-ция для смены знаеничя переменной
-  const [searchQuery, setSearchQuery] = useState("");
-  // выбранной категории, в 1 - пермееная для хранения выбранной категории, в 2 - ф-ция, которая меняет значение, изначально all все категории
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  // для сортировки, в 1 - .., в 2 - ф-2ия для смены способа сортировки, изначальное значение по умолчанию
-  const [sortBy, setSortBy] = useState("default");
-
-  // корзина
-  // 1 - массив товаров в корзине, 2 - ф-ция для его изменения. Пытаемся сразу достать из localStorage при старте
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const savedCart = localStorage.getItem("cart");
-      return savedCart ? JSON.parse(savedCart) : [];
-    } catch {
-      return []; // если строка битая, возвращаем пустой массив
-    }
-  });
-  // 1 - открыта ли корзина (тру/фолз), 2 - ф-ция для открытия/закрытия, изначально закрыта
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // модальное окно
-  // 1 - выбранный товар для модалки (изначально null - окно закрыто), 2 - ф-ция для его смены
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
-  // вызываем useEffect внутри код, который должен выполниться, когда компонент появится на экране
-  useEffect(() => {
-    // создаем функцию для запроса данных, async - ключевое слово, что внутри ф-ции операции которые требут времени
-    const fetchData = async () => {
-      try {
-        setIsLoading(true); // включаем загрузку, текст Загрзука
-        
-        // 1. делаем запрос на сервер для товаров (ждем ответ), responce - посылка с ответом 
-        const productsRes = await fetch("https://dummyjson.com/products?limit=100");
-        
-        // если сервер вернул ошибку
-        if (!productsRes.ok) {
-          throw new Error("Ошибка сервера");
-        }
-
-        // превращаем ответ сервера в удобный объект JS с временем
-        const productsData = await productsRes.json();
-        
-        // сохраняем полученные 100 товаров в состояние products
-        setProducts(productsData.products); 
-
-        // 2. делаем запрос на сервер для категорий
-        const categoriesRes = await fetch("https://dummyjson.com/products/category-list");
-        const categoriesData = await categoriesRes.json();
-        
-        // сохраняем полученные категории в состояние categories
-        setCategories(categoriesData); 
-        
-      } catch (err) {
-        // выводим реальную ошибку в консоль (чтобы VS Code не ругался и для отладки)
-        console.error(err); 
-        // показываем пользователю понятный текст
-        setError("Не удалось загрузить данные. Проверьте интернет.");
-      } finally {
-        // finally сработает в любом случае (даже если была ошибка)
-        // выключаем загрузку, чтобы скрыть текст "Загрузка..."
-        setIsLoading(false); 
-      }
-    };
-
-    fetchData(); // запускаем функцию
-  }, []); // пустой массив [] для одного раза
-
-  // логика сохранения корзины
-  // каждый раз, когда корзина меняется, сохраняем её в память браузера
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems)); // превращаем массив в строку и сохраняем
-  }, [cartItems]); // следим за изменениями cartItems
-
-  // ф-ция добавления товара в корзину
-  const addToCart = (product) => {
-    setCartItems((prevItems) => {
-      // ищем, есть ли уже такой товар в корзине
-      const existingItem = prevItems.find((item) => item.id === product.id);
-      if (existingItem) {
-        // если есть - увеличиваем его количество на 1
-        return prevItems.map((item) =>
-          item.id === product.id ? { ...item, count: item.count + 1 } : item
-        );
-      }
-      // если нет - добавляем новый товар с count: 1
-      // сохраняем только нужные поля, а не весь объект
-      return [...prevItems, { 
-        id: product.id, 
-        title: product.title, 
-        price: product.price, 
-        thumbnail: product.thumbnail, 
-        count: 1 
-      }];
-    });
-    setIsCartOpen(true); // открываем корзину при добавлении
-  };
-
-  // ф-ция удаления товара из корзины
-  const removeFromCart = (id) => {
-    // оставляем все товары, кроме того, чей id мы передали
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
-  };
-
-  // ф-ция изменения количества (+1 или -1)
-  const updateQuantity = (id, delta) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id === id) {
-          const newCount = item.count + delta; // считаем новое количество
-          if (newCount <= 0) return null; // если 0 или меньше - удаляем (вернем null)
-          return { ...item, count: newCount }; // иначе обновляем
-        }
-        return item;
-      }).filter(Boolean) // убираем все null из массива
-    );
-  };
-
-  // считаем общее количество товаров для шапки
-  const totalCartCount = cartItems.reduce((sum, item) => sum + item.count, 0);
-
-  // фильтруем товары (поиск + категория)
-  // переменная для товаров, которык прошли проверку, функция фильтра и начало цикла
-  let filteredProducts = products.filter((product) => {
-    // = название товара, toLowerCase() длч перевода в нижний регистр, includes - метод для проверки есть ли внутри то, что ввели в поиск
-    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
-     // если все категории то пропускаем все или если выбрана конктретная категория , то проверка совпадает ли с категорией товара
-    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-    // оставляем товар если он подошел по поиску и по категории
-    return matchesSearch && matchesCategory;
-  });
-
-  // 2. Сортируем
-  // если сначала дешевле
-  if (sortBy === "price-asc") {
-    // берем два товара, если результат отрицательный, то сначала а.ю потом б
-    filteredProducts.sort((a, b) => a.price - b.price);
-  } else if (sortBy === "price-desc") { // наоборот
-    filteredProducts.sort((a, b) => b.price - a.price);
-  } else if (sortBy === "rating") { // по рейтингу
-    filteredProducts.sort((a, b) => b.rating - a.rating);
-  }
+  // Достаем из контекста корзину и поиск
+  const { totalCartCount, searchQuery, setSearchQuery } = useCart();
 
   return (
     <>
-      {/* Выводим шапку, передаем реальное кол-во товаров в корзине и функцию открытия */}
       <Header 
-        cartCount={totalCartCount}
-        onCartClick={() => setIsCartOpen(true)}
+        cartCount={totalCartCount} 
         searchQuery={searchQuery} 
-        onSearchChange={setSearchQuery}
-      />  
+        onSearchChange={setSearchQuery} 
+      />
       
-      <main className="container main">
-        <h1 className="main__title">
-          Grab the best deal on <span className="main__accent">Beauty</span>
-        </h1>
-
-        {/* блок с фильтрами (категории и сортировка) */}
-        <div className="filters">
-          <select  // выпадающий список
-            className="filters__select"
-            value={selectedCategory}  // все категории либо смененный
-            onChange={(e) => setSelectedCategory(e.target.value)} // событие если нажимаем на другой пункт
-          >
-            <option value="all">Все категории</option>
-            {categories.map(cat => ( // используем categories, cat - текущее значение
-              <option key={cat} value={cat}>
-                {cat.charAt(0).toUpperCase() + cat.slice(1)} {/* Делаем первую букву заглавной */}
-              </option>
-            ))}
-          </select>
-
-          <select  // сортировка
-            className="filters__select"
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="default">По умолчанию</option>
-            <option value="price-asc">Сначала дешевле</option>
-            <option value="price-desc">Сначала дороже</option>
-            <option value="rating">По рейтингу</option>
-          </select>
-        </div>
-
-        {/* создаем сетку для карточек */}
-        <div className="grid">
-          {/* если isLoading = true, показываем текст загрузки */}
-          {isLoading && <p>Загрузка товаров...</p>}
-          
-          {/* если есть ошибка, показываем ее красным цветом */}
-          {error && <p className="error-message">{error}</p>}
-          
-          {/* если загрузка прошла и ошибки нет - рисуем отфильтрованные карточки */}
-          {!isLoading && !error && filteredProducts.length > 0 &&
-            filteredProducts.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onAddToCart={addToCart} // передаем функцию добавления в корзину
-                onCardClick={setSelectedProduct} // передаем функцию открытия модалки (сохраняем товар в стейт)
-              />
-            ))}
-
-          {/* если ничего не найдено - показываем сообщение */}
-          {!isLoading && !error && filteredProducts.length === 0 && (
-            <p>Ничего не найдено. Попробуйте изменить запрос.</p>
-          )}
-        </div>
-      </main>
-
-      {/* Выводим панель корзины. Она сама скроется, если isOpen = false */}
-      <Cart 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} // функция закрытия
-        items={cartItems} 
-        onRemove={removeFromCart}
-        onUpdateQuantity={updateQuantity}
-      />
-
-      {/* Выводим модалку. Передаем туда выбранный товар (если null - она скроется) */}
-      <ProductModal 
-        product={selectedProduct} 
-        onClose={() => setSelectedProduct(null)} // функция закрытия модалки
-        onAddToCart={addToCart} // передаем функцию добавления в корзину
-      />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/product/:id" element={<Product />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </>
   );
 }
