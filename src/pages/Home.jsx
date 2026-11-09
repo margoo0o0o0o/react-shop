@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router"; // импортируем хук для адреса
+import { useSearchParams } from "react-router"; 
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/useCart"; 
 
@@ -9,25 +9,27 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true); 
   const [error, setError] = useState(null); 
 
-  // ВМЕСТО useState БЕРЕМ ВСЕ ФИЛЬТРЫ ИЗ АДРЕСА
+  // достаем параметры из адреса
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // q (поиск), category (категория), sort (сортировка)
+  // берем значения из адреса (если нет - по умолчанию)
   const searchQuery = searchParams.get("q") || "";
   const selectedCategory = searchParams.get("category") || "all";
   const sortBy = searchParams.get("sort") || "default";
 
-  // Функции для смены фильтров (они меняют адрес)
+  // функции для смены фильтров (с replace: true, чтобы не засорять историю)
   const setCategory = (val) => {
-    if (val === "all") searchParams.delete("category");
-    else searchParams.set("category", val);
-    setSearchParams(searchParams);
+    const newParams = new URLSearchParams(searchParams);
+    if (val === "all") newParams.delete("category");
+    else newParams.set("category", val);
+    setSearchParams(newParams, { replace: true });
   };
 
   const setSortBy = (val) => {
-    if (val === "default") searchParams.delete("sort");
-    else searchParams.set("sort", val);
-    setSearchParams(searchParams);
+    const newParams = new URLSearchParams(searchParams);
+    if (val === "default") newParams.delete("sort");
+    else newParams.set("sort", val);
+    setSearchParams(newParams, { replace: true });
   };
 
   const { addToCart } = useCart();
@@ -36,14 +38,19 @@ export default function Home() {
     const fetchData = async () => {
       try {
         setIsLoading(true); 
+        
+        // загружаем товары
         const productsRes = await fetch("https://dummyjson.com/products?limit=100");
         if (!productsRes.ok) throw new Error("Server error");
         const productsData = await productsRes.json();
         setProducts(productsData.products); 
 
+        // загружаем категории (добавили проверку на ошибку)
         const categoriesRes = await fetch("https://dummyjson.com/products/category-list");
+        if (!categoriesRes.ok) throw new Error("Categories error");
         const categoriesData = await categoriesRes.json();
         setCategories(categoriesData); 
+        
       } catch (err) {
         console.error(err); 
         setError("Failed to load data. Please check your internet connection.");
@@ -54,14 +61,14 @@ export default function Home() {
     fetchData(); 
   }, []); 
 
-  // ФИЛЬТРАЦИЯ (поиск + категория)
+  // фильтруем товары (поиск + категория)
   let filteredProducts = products.filter((product) => {
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  // СОРТИРОВКА
+  // сортируем
   if (sortBy === "price-asc") {
     filteredProducts.sort((a, b) => a.price - b.price);
   } else if (sortBy === "price-desc") { 
@@ -77,7 +84,6 @@ export default function Home() {
       </h1>
 
       <div className="filters">
-        {/* Категория */}
         <select className="filters__select" value={selectedCategory} onChange={(e) => setCategory(e.target.value)}>
           <option value="all">All categories</option>
           {categories.map(cat => (
@@ -85,7 +91,6 @@ export default function Home() {
           ))}
         </select>
 
-        {/* Сортировка */}
         <select className="filters__select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value="default">Default</option>
           <option value="price-asc">Price: Low to High</option>

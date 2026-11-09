@@ -1,28 +1,36 @@
 import "./Header.css";
-import { Link, useSearchParams } from "react-router";
+import { Link, useSearchParams, useLocation, useNavigate } from "react-router";
 
-// компонент шапки
 export default function Header({ cartCount = 0 }) {
-  // достаем параметры из адреса
   const [searchParams, setSearchParams] = useSearchParams();
-  // берем значение поиска из адреса (или пустую строку)
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const searchQuery = searchParams.get("q") || "";
 
-  // когда пользователь печатает, меняем адрес
   const handleSearchChange = (e) => {
     const value = e.target.value;
+    // создаем новый объект
+    const newParams = new URLSearchParams(searchParams);
+
     if (value) {
-      searchParams.set("q", value);
+      newParams.set("q", value);
     } else {
-      searchParams.delete("q");
+      newParams.delete("q");
     }
-    setSearchParams(searchParams);
+
+    // перекидываем в каталог
+    if (location.pathname !== "/") {
+      navigate(`/?${newParams.toString()}`);
+    } else {
+      // replace: true чтобы каждая буква не создавала новую запись в истории
+      setSearchParams(newParams, { replace: true });
+    }
   };
 
   return (
     <header className="header">
       <div className="container header__inner">
-        
         <Link to="/" className="header__logo">MegaMart</Link> 
         
         <input 
@@ -43,7 +51,6 @@ export default function Header({ cartCount = 0 }) {
           Cart
           <span className="header__badge">{cartCount}</span>
         </Link>
-        
       </div>
     </header>
   );

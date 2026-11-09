@@ -1,7 +1,5 @@
-import { createContext, useState, useEffect } from "react";
-
-// создаем коробку (контекст), в которой будут лежать данные корзины
-export const CartContext = createContext();
+import { useState, useEffect } from "react";
+import { CartContext } from "./context"; // импортируем коробку
 
 // компонент-обертка, который раздает данные корзины всем страницам
 export function CartProvider({ children }) {

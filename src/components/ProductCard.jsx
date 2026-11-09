@@ -28,7 +28,7 @@ export default function ProductCard({ product, onAddToCart }) {
       </Link>
       <div className="card__action">
         <Button variant="outline" className="btn--full" onClick={() => onAddToCart(product)}>
-          В корзину
+          Add to cart
         </Button> 
       </div>
     </article>
