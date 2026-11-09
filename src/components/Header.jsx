@@ -1,8 +1,24 @@
 import "./Header.css";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 // компонент шапки
 export default function Header({ cartCount = 0 }) {
+  // достаем параметры из адреса
+  const [searchParams, setSearchParams] = useSearchParams();
+  // берем значение поиска из адреса (или пустую строку)
+  const searchQuery = searchParams.get("q") || "";
+
+  // когда пользователь печатает, меняем адрес
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    if (value) {
+      searchParams.set("q", value);
+    } else {
+      searchParams.delete("q");
+    }
+    setSearchParams(searchParams);
+  };
+
   return (
     <header className="header">
       <div className="container header__inner">
@@ -14,6 +30,8 @@ export default function Header({ cartCount = 0 }) {
           type="search"
           placeholder="Search essentials, groceries and more..."
           aria-label="Search products"
+          value={searchQuery}
+          onChange={handleSearchChange}
         />
         
         <Link to="/cart" className="header__cart" aria-label={`Cart, items: ${cartCount}`}>

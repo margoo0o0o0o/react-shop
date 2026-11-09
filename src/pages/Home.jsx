@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router"; // импортируем хук для адреса
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/useCart"; 
 
@@ -7,8 +8,27 @@ export default function Home() {
   const [categories, setCategories] = useState([]); 
   const [isLoading, setIsLoading] = useState(true); 
   const [error, setError] = useState(null); 
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("default");
+
+  // ВМЕСТО useState БЕРЕМ ВСЕ ФИЛЬТРЫ ИЗ АДРЕСА
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // q (поиск), category (категория), sort (сортировка)
+  const searchQuery = searchParams.get("q") || "";
+  const selectedCategory = searchParams.get("category") || "all";
+  const sortBy = searchParams.get("sort") || "default";
+
+  // Функции для смены фильтров (они меняют адрес)
+  const setCategory = (val) => {
+    if (val === "all") searchParams.delete("category");
+    else searchParams.set("category", val);
+    setSearchParams(searchParams);
+  };
+
+  const setSortBy = (val) => {
+    if (val === "default") searchParams.delete("sort");
+    else searchParams.set("sort", val);
+    setSearchParams(searchParams);
+  };
 
   const { addToCart } = useCart();
 
@@ -34,11 +54,14 @@ export default function Home() {
     fetchData(); 
   }, []); 
 
+  // ФИЛЬТРАЦИЯ (поиск + категория)
   let filteredProducts = products.filter((product) => {
+    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-    return matchesCategory;
+    return matchesSearch && matchesCategory;
   });
 
+  // СОРТИРОВКА
   if (sortBy === "price-asc") {
     filteredProducts.sort((a, b) => a.price - b.price);
   } else if (sortBy === "price-desc") { 
@@ -54,13 +77,15 @@ export default function Home() {
       </h1>
 
       <div className="filters">
-        <select className="filters__select" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+        {/* Категория */}
+        <select className="filters__select" value={selectedCategory} onChange={(e) => setCategory(e.target.value)}>
           <option value="all">All categories</option>
           {categories.map(cat => (
             <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
           ))}
         </select>
 
+        {/* Сортировка */}
         <select className="filters__select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value="default">Default</option>
           <option value="price-asc">Price: Low to High</option>
