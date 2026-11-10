@@ -1,17 +1,18 @@
 import { Link } from "react-router";
-import { useCart } from "../context/useCart"; 
+import { useCart } from "../cart/useCart"; 
 import Button from "../components/Button";
 import "./Cart.css";
 
 export default function Cart() {
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.count, 0);
+  const { state, removeItem, changeQuantity, clearCart } = useCart();
+  
+  const totalPrice = state.items.reduce((sum, item) => sum + item.price * item.count, 0);
 
   return (
     <div className="container cart-page">
       <h1>Cart</h1>
       
-      {cartItems.length === 0 ? (
+      {state.items.length === 0 ? (
         <div className="cart-empty">
           <p>Your cart is empty</p>
           <Link to="/" className="btn btn--primary cart-empty__link">
@@ -21,7 +22,7 @@ export default function Cart() {
       ) : (
         <div className="cart-layout">
           <div className="cart-items-list">
-            {cartItems.map((item) => (
+            {state.items.map((item) => (
               <div key={item.id} className="cart-item">
                 <img src={item.thumbnail} alt={item.title} />
                 <div className="cart-item-info">
@@ -29,12 +30,12 @@ export default function Cart() {
                   <p>${item.price.toFixed(2)}</p>
                 </div>
                 <div className="cart-controls">
-                  <button onClick={() => updateQuantity(item.id, -1)}>-</button>
+                  <button onClick={() => changeQuantity(item.id, -1)}>-</button>
                   <span>{item.count}</span>
-                  <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+                  <button onClick={() => changeQuantity(item.id, 1)}>+</button>
                 </div>
                 <p className="cart-item-total">${(item.price * item.count).toFixed(2)}</p>
-                <button className="cart-remove" onClick={() => removeFromCart(item.id)}>🗑</button>
+                <button className="cart-remove" onClick={() => removeItem(item.id)}>🗑</button>
               </div>
             ))}
           </div>
@@ -44,6 +45,9 @@ export default function Cart() {
               <span>Order amount:</span>
               <span>${totalPrice.toFixed(2)}</span>
             </div>
+            <Button variant="outline" className="btn--full clear-cart-btn" onClick={clearCart}>
+              Clear Cart
+            </Button>
             <Button variant="primary" className="btn--full">Checkout</Button>
           </div>
         </div>

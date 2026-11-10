@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
-import { useCart } from "../context/useCart"; 
+import { useCart } from "../cart/useCart"; 
 import Button from "../components/Button";
 import "./Product.css";
 
@@ -11,13 +11,14 @@ export default function Product() {
   const [error, setError] = useState(null);
   const [activeImage, setActiveImage] = useState("");
 
-  const { addToCart } = useCart();
+  // достаем готовую функцию добавления
+  const { addItem } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        setError(null); 
+        setError(null);
         const res = await fetch(`https://dummyjson.com/products/${id}`);
         if (!res.ok) throw new Error("Product not found");
         const data = await res.json();
@@ -38,6 +39,7 @@ export default function Product() {
   }, [id]);
 
   if (isLoading) return <div className="container product-message">Loading...</div>;
+  
   if (error) return (
     <div className="container product-message">
       <h2>{error}</h2>
@@ -54,7 +56,9 @@ export default function Product() {
           <div className="product-thumbnails">
             {product.images.map((img, index) => (
               <img 
-                key={index} src={img} alt="" 
+                key={index} 
+                src={img} 
+                alt="" 
                 onClick={() => setActiveImage(img)} 
                 className={activeImage === img ? "active" : ""}
               />
@@ -67,7 +71,11 @@ export default function Product() {
         <h1>{product.title}</h1>
         <p className="product-price">${product.price.toFixed(2)}</p>
         <p className="product-desc">{product.description}</p>
-        <Button variant="primary" onClick={() => addToCart(product)}>
+        
+        <Button 
+          variant="primary" 
+          onClick={() => addItem(product)}
+        >
           Add to cart
         </Button>
       </div>

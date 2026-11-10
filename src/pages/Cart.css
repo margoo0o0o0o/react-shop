@@ -108,6 +108,10 @@
   margin: 20px 0;
 }
 
+.clear-cart-btn {
+  margin-bottom: 10px;
+}
+
 @media (max-width: 768px) {
   .cart-layout {
     flex-direction: column;
