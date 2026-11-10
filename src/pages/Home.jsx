@@ -100,7 +100,6 @@ export default function Home() {
         {isLoading && <p>Loading products...</p>}
         {error && <p className="error-message">{error}</p>}
         
-        {/* Теперь мы не передаем onAddToCart, карточка сама возьмет dispatch из контекста */}
         {!isLoading && !error && filteredProducts.length > 0 &&
           filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
