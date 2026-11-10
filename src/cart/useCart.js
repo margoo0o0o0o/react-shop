@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { CartContext } from "./context"; // импортируем коробку из нового файла
+import { CartContext } from "./context"; // берем из нового файла
 
 // хук для получения данных корзины
 export function useCart() {

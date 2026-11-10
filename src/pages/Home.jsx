@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router"; 
 import ProductCard from "../components/ProductCard";
-import { useCart } from "../context/useCart"; 
 
 export default function Home() {
   const [products, setProducts] = useState([]); 
@@ -32,8 +31,6 @@ export default function Home() {
     setSearchParams(newParams, { replace: true });
   };
 
-  const { addToCart } = useCart();
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -45,7 +42,7 @@ export default function Home() {
         const productsData = await productsRes.json();
         setProducts(productsData.products); 
 
-        // загружаем категории (добавили проверку на ошибку)
+        // загружаем категории
         const categoriesRes = await fetch("https://dummyjson.com/products/category-list");
         if (!categoriesRes.ok) throw new Error("Categories error");
         const categoriesData = await categoriesRes.json();
@@ -103,9 +100,10 @@ export default function Home() {
         {isLoading && <p>Loading products...</p>}
         {error && <p className="error-message">{error}</p>}
         
+        {/* Теперь мы не передаем onAddToCart, карточка сама возьмет dispatch из контекста */}
         {!isLoading && !error && filteredProducts.length > 0 &&
           filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+            <ProductCard key={product.id} product={product} />
           ))}
 
         {!isLoading && !error && filteredProducts.length === 0 && (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
-import { useCart } from "../context/useCart"; 
+import { useCart } from "../cart/useCart"; // импортируем из новой папки cart
 import Button from "../components/Button";
 import "./Product.css";
 
@@ -11,18 +11,20 @@ export default function Product() {
   const [error, setError] = useState(null);
   const [activeImage, setActiveImage] = useState("");
 
-  const { addToCart } = useCart();
+  // достаем dispatch из контекста (вместо addToCart)
+  const { dispatch } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        setError(null); 
+        setError(null); // сбрасываем ошибку при смене id
         const res = await fetch(`https://dummyjson.com/products/${id}`);
         if (!res.ok) throw new Error("Product not found");
         const data = await res.json();
         setProduct(data);
         
+        // если есть фото, берем первое, если нет - thumbnail
         if (data.images && data.images.length > 0) {
           setActiveImage(data.images[0]);
         } else {
@@ -38,6 +40,7 @@ export default function Product() {
   }, [id]);
 
   if (isLoading) return <div className="container product-message">Loading...</div>;
+  
   if (error) return (
     <div className="container product-message">
       <h2>{error}</h2>
@@ -54,7 +57,9 @@ export default function Product() {
           <div className="product-thumbnails">
             {product.images.map((img, index) => (
               <img 
-                key={index} src={img} alt="" 
+                key={index} 
+                src={img} 
+                alt="" 
                 onClick={() => setActiveImage(img)} 
                 className={activeImage === img ? "active" : ""}
               />
@@ -67,7 +72,12 @@ export default function Product() {
         <h1>{product.title}</h1>
         <p className="product-price">${product.price.toFixed(2)}</p>
         <p className="product-desc">{product.description}</p>
-        <Button variant="primary" onClick={() => addToCart(product)}>
+        
+        {/* используем dispatch вместо addToCart */}
+        <Button 
+          variant="primary" 
+          onClick={() => dispatch({ type: "ADD_ITEM", payload: product })}
+        >
           Add to cart
         </Button>
       </div>

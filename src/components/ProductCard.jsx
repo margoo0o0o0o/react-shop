@@ -1,8 +1,10 @@
 import { Link } from "react-router";
 import Button from "./Button";
+import { useCart } from "../cart/useCart"; // импортируем хук
 import "./ProductCard.css";
 
-export default function ProductCard({ product, onAddToCart }) {
+export default function ProductCard({ product }) {
+  const { dispatch } = useCart(); // берем dispatch из контекста
   const { title, price, discountPercentage, rating, thumbnail } = product;
   const oldPrice = price / (1 - discountPercentage / 100);
   const save = oldPrice - price;
@@ -27,7 +29,12 @@ export default function ProductCard({ product, onAddToCart }) {
         </div>
       </Link>
       <div className="card__action">
-        <Button variant="outline" className="btn--full" onClick={() => onAddToCart(product)}>
+        {/* используем dispatch вместо пропса onAddToCart */}
+        <Button 
+          variant="outline" 
+          className="btn--full" 
+          onClick={() => dispatch({ type: "ADD_ITEM", payload: product })}
+        >
           Add to cart
         </Button> 
       </div>
