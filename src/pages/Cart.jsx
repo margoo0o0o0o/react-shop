@@ -1,19 +1,12 @@
 import { Link } from "react-router";
-import { useCart } from "../cart/useCart"; // новый путь
+import { useCart } from "../cart/useCart"; 
 import Button from "../components/Button";
 import "./Cart.css";
 
 export default function Cart() {
-  // достаем state и dispatch из контекста
-  const { state, dispatch } = useCart(); 
+  const { state, removeItem, changeQuantity, clearCart } = useCart();
   
-  // считаем сумму, проходя по state.items
   const totalPrice = state.items.reduce((sum, item) => sum + item.price * item.count, 0);
-
-  // функция очистки корзины (по заданию)
-  const handleClearCart = () => {
-    dispatch({ type: "CLEAR_CART" });
-  };
 
   return (
     <div className="container cart-page">
@@ -29,7 +22,6 @@ export default function Cart() {
       ) : (
         <div className="cart-layout">
           <div className="cart-items-list">
-            {/* выводим товары из state.items */}
             {state.items.map((item) => (
               <div key={item.id} className="cart-item">
                 <img src={item.thumbnail} alt={item.title} />
@@ -38,14 +30,12 @@ export default function Cart() {
                   <p>${item.price.toFixed(2)}</p>
                 </div>
                 <div className="cart-controls">
-                  {/* используем dispatch для изменения количества */}
-                  <button onClick={() => dispatch({ type: "UPDATE_QUANTITY", payload: { id: item.id, delta: -1 } })}>-</button>
+                  <button onClick={() => changeQuantity(item.id, -1)}>-</button>
                   <span>{item.count}</span>
-                  <button onClick={() => dispatch({ type: "UPDATE_QUANTITY", payload: { id: item.id, delta: 1 } })}>+</button>
+                  <button onClick={() => changeQuantity(item.id, 1)}>+</button>
                 </div>
                 <p className="cart-item-total">${(item.price * item.count).toFixed(2)}</p>
-                {/* используем dispatch для удаления */}
-                <button className="cart-remove" onClick={() => dispatch({ type: "REMOVE_ITEM", payload: item.id })}>🗑</button>
+                <button className="cart-remove" onClick={() => removeItem(item.id)}>🗑</button>
               </div>
             ))}
           </div>
@@ -55,8 +45,7 @@ export default function Cart() {
               <span>Order amount:</span>
               <span>${totalPrice.toFixed(2)}</span>
             </div>
-            {/* добавили кнопку очистки корзины (по заданию) */}
-            <Button variant="outline" className="btn--full" onClick={handleClearCart} style={{ marginBottom: "10px" }}>
+            <Button variant="outline" className="btn--full clear-cart-btn" onClick={clearCart}>
               Clear Cart
             </Button>
             <Button variant="primary" className="btn--full">Checkout</Button>

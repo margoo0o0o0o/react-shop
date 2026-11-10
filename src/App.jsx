@@ -4,15 +4,12 @@ import Home from "./pages/Home";
 import Product from "./pages/Product";
 import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
-import { useCart } from "./cart/useCart"; // новый путь
 import "./App.css";
 
 export default function App() {
-  const { totalCartCount } = useCart();
-
   return (
     <>
-      <Header cartCount={totalCartCount} />
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/product/:id" element={<Product />} />

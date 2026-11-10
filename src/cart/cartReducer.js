@@ -1,16 +1,27 @@
 // начальное состояние корзины
 export const initialState = {
-  items: [], // тут храним товары
+  items: [],
 };
 
-// редьюсер — ф-ция, которая меняет состояние в зависимости от команды (action)
+// функция для загрузки корзины из localStorage (исправляет баг StrictMode)
+export function loadCart() {
+  try {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      return JSON.parse(savedCart);
+    }
+  } catch {
+    // если ошибка, возвращаем пустое состояние
+  }
+  return initialState;
+}
+
+// редьюсер
 export function cartReducer(state, action) {
   switch (action.type) {
-    // добавить товар
     case "ADD_ITEM": {
       const existingItem = state.items.find((item) => item.id === action.payload.id);
       if (existingItem) {
-        // если товар уже есть, увеличиваем количество на 1
         return {
           ...state,
           items: state.items.map((item) =>
@@ -18,14 +29,20 @@ export function cartReducer(state, action) {
           ),
         };
       }
-      // если нет, добавляем новый с count: 1
+      // Сохраняем только нужные поля
+      const newItem = {
+        id: action.payload.id,
+        title: action.payload.title,
+        price: action.payload.price,
+        thumbnail: action.payload.thumbnail,
+        count: 1,
+      };
       return {
         ...state,
-        items: [...state.items, { ...action.payload, count: 1 }],
+        items: [...state.items, newItem],
       };
     }
     
-    // удалить товар
     case "REMOVE_ITEM": {
       return {
         ...state,
@@ -33,7 +50,6 @@ export function cartReducer(state, action) {
       };
     }
 
-    // изменить количество (+1 или -1)
     case "UPDATE_QUANTITY": {
       return {
         ...state,
@@ -41,21 +57,19 @@ export function cartReducer(state, action) {
           .map((item) => {
             if (item.id === action.payload.id) {
               const newCount = item.count + action.payload.delta;
-              if (newCount <= 0) return null; // если 0 или меньше, удаляем
+              if (newCount <= 0) return null;
               return { ...item, count: newCount };
             }
             return item;
           })
-          .filter(Boolean), // убираем null
+          .filter(Boolean),
       };
     }
 
-    // очистить всю корзину
     case "CLEAR_CART": {
       return initialState;
     }
 
-    // если команда неизвестна, оставляем как было
     default:
       return state;
   }

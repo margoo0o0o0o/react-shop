@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
-import { useCart } from "../cart/useCart"; // импортируем из новой папки cart
+import { useCart } from "../cart/useCart"; 
 import Button from "../components/Button";
 import "./Product.css";
 
@@ -11,20 +11,19 @@ export default function Product() {
   const [error, setError] = useState(null);
   const [activeImage, setActiveImage] = useState("");
 
-  // достаем dispatch из контекста (вместо addToCart)
-  const { dispatch } = useCart();
+  // достаем готовую функцию добавления
+  const { addItem } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        setError(null); // сбрасываем ошибку при смене id
+        setError(null);
         const res = await fetch(`https://dummyjson.com/products/${id}`);
         if (!res.ok) throw new Error("Product not found");
         const data = await res.json();
         setProduct(data);
         
-        // если есть фото, берем первое, если нет - thumbnail
         if (data.images && data.images.length > 0) {
           setActiveImage(data.images[0]);
         } else {
@@ -73,10 +72,9 @@ export default function Product() {
         <p className="product-price">${product.price.toFixed(2)}</p>
         <p className="product-desc">{product.description}</p>
         
-        {/* используем dispatch вместо addToCart */}
         <Button 
           variant="primary" 
-          onClick={() => dispatch({ type: "ADD_ITEM", payload: product })}
+          onClick={() => addItem(product)}
         >
           Add to cart
         </Button>
