@@ -1,22 +1,18 @@
-import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router"; 
 import ProductCard from "../components/ProductCard";
+import { useProducts } from "../hooks/useProducts"; // импортируем наш хук
 
 export default function Home() {
-  const [products, setProducts] = useState([]); 
-  const [categories, setCategories] = useState([]); 
-  const [isLoading, setIsLoading] = useState(true); 
-  const [error, setError] = useState(null); 
+  // используем хук вместо useEffect и useState
+  const { products, categories, isLoading, error } = useProducts();
 
   // достаем параметры из адреса
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // берем значения из адреса (если нет - по умолчанию)
   const searchQuery = searchParams.get("q") || "";
   const selectedCategory = searchParams.get("category") || "all";
   const sortBy = searchParams.get("sort") || "default";
 
-  // функции для смены фильтров (с replace: true, чтобы не засорять историю)
   const setCategory = (val) => {
     const newParams = new URLSearchParams(searchParams);
     if (val === "all") newParams.delete("category");
@@ -30,33 +26,6 @@ export default function Home() {
     else newParams.set("sort", val);
     setSearchParams(newParams, { replace: true });
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true); 
-        
-        // загружаем товары
-        const productsRes = await fetch("https://dummyjson.com/products?limit=100");
-        if (!productsRes.ok) throw new Error("Server error");
-        const productsData = await productsRes.json();
-        setProducts(productsData.products); 
-
-        // загружаем категории
-        const categoriesRes = await fetch("https://dummyjson.com/products/category-list");
-        if (!categoriesRes.ok) throw new Error("Categories error");
-        const categoriesData = await categoriesRes.json();
-        setCategories(categoriesData); 
-        
-      } catch (err) {
-        console.error(err); 
-        setError("Failed to load data. Please check your internet connection.");
-      } finally {
-        setIsLoading(false); 
-      }
-    };
-    fetchData(); 
-  }, []); 
 
   // фильтруем товары (поиск + категория)
   let filteredProducts = products.filter((product) => {
@@ -100,7 +69,6 @@ export default function Home() {
         {isLoading && <p>Loading products...</p>}
         {error && <p className="error-message">{error}</p>}
         
-        {/* Теперь мы не передаем onAddToCart, карточка сама возьмет dispatch из контекста */}
         {!isLoading && !error && filteredProducts.length > 0 &&
           filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />

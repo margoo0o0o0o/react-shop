@@ -3,17 +3,21 @@ export const initialState = {
   items: [],
 };
 
-// функция для загрузки корзины из localStorage (исправляет баг StrictMode)
-export function loadCart() {
-  try {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      return JSON.parse(savedCart);
-    }
-  } catch {
-    // если ошибка, возвращаем пустое состояние
-  }
-  return initialState;
+// проверка формы данных из localStorage: {"items": [...]}
+export function isValidCart(data) {
+  return (
+    data !== null &&
+    typeof data === "object" &&
+    Array.isArray(data.items) &&
+    data.items.every(
+      (item) =>
+        item &&
+        typeof item.id === "number" &&
+        typeof item.price === "number" &&
+        Number.isInteger(item.count) &&
+        item.count > 0
+    )
+  );
 }
 
 // редьюсер
@@ -29,7 +33,6 @@ export function cartReducer(state, action) {
           ),
         };
       }
-      // Сохраняем только нужные поля
       const newItem = {
         id: action.payload.id,
         title: action.payload.title,

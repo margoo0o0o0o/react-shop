@@ -1,6 +1,8 @@
 import "./Header.css";
+import { useState, useEffect } from "react"; 
 import { Link, useSearchParams, useLocation, useNavigate } from "react-router";
 import { useCart } from "../cart/useCart";
+import { useDebounce } from "../hooks/useDebounce"; 
 
 export default function Header() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -9,14 +11,23 @@ export default function Header() {
   
   const { totalCartCount } = useCart();
 
+  // берем поиск из адреса (финальное значение)
   const searchQuery = searchParams.get("q") || "";
+  
+  // локальное состояние для ввода (чтобы буквы появлялись сразу)
+  const [inputValue, setInputValue] = useState(searchQuery);
+  
+  // дебаунсим ввод 
+  const debouncedSearch = useDebounce(inputValue, 300);
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
+  // когда debouncedSearch меняется, обновляем URL
+  useEffect(() => {
+    // если значение в адресе уже совпадает с тем, что мы ввели — ничего не делаем
+    if (debouncedSearch === searchQuery) return;
+
     const newParams = new URLSearchParams(searchParams);
-
-    if (value) {
-      newParams.set("q", value);
+    if (debouncedSearch) {
+      newParams.set("q", debouncedSearch);
     } else {
       newParams.delete("q");
     }
@@ -26,7 +37,9 @@ export default function Header() {
     } else {
       setSearchParams(newParams, { replace: true });
     }
-  };
+    // Отключаем проверку зависимостей, чтобы избежать бесконечного цикла
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]); 
 
   return (
     <header className="header">
@@ -39,8 +52,8 @@ export default function Header() {
           type="search"
           placeholder="Search essentials, groceries and more..."
           aria-label="Search products"
-          value={searchQuery}
-          onChange={handleSearchChange}
+          value={inputValue} 
+          onChange={(e) => setInputValue(e.target.value)} 
         />
         
         <Link to="/cart" className="header__cart" aria-label={`Cart, items: ${totalCartCount}`}>
