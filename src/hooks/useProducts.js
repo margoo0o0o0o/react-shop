@@ -15,7 +15,6 @@ export function useProducts() {
         setIsLoading(true);
         setError(null);
 
-        // два запроса идут одновременно
         const [productsRes, categoriesRes] = await Promise.all([
           fetch("https://dummyjson.com/products?limit=100", { signal }),
           fetch("https://dummyjson.com/products/category-list", { signal }),

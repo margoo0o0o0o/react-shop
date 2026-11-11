@@ -1,33 +1,29 @@
 import "./Header.css";
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from "react";
 import { Link, useSearchParams, useLocation, useNavigate } from "react-router";
 import { useCart } from "../cart/useCart";
-import { useDebounce } from "../hooks/useDebounce"; 
+import { useDebounce } from "../hooks/useDebounce";
 
 export default function Header() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  
   const { totalCartCount } = useCart();
 
-  // берем поиск из адреса (финальное значение)
   const searchQuery = searchParams.get("q") || "";
-  
-  // локальное состояние для ввода (чтобы буквы появлялись сразу)
   const [inputValue, setInputValue] = useState(searchQuery);
-  
-  // дебаунсим ввод 
-  const debouncedSearch = useDebounce(inputValue, 300);
+  const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
 
-  // когда debouncedSearch меняется, обновляем URL
-  useEffect(() => {
-    // если значение в адресе уже совпадает с тем, что мы ввели — ничего не делаем
-    if (debouncedSearch === searchQuery) return;
+  // адрес изменился не из поля (логотип, кнопка «Назад») — обновляем текст в поле
+  if (searchQuery !== prevSearchQuery) {
+    setPrevSearchQuery(searchQuery);
+    setInputValue(searchQuery);
+  }
 
+  const updateUrl = (value) => {
     const newParams = new URLSearchParams(searchParams);
-    if (debouncedSearch) {
-      newParams.set("q", debouncedSearch);
+    if (value) {
+      newParams.set("q", value);
     } else {
       newParams.delete("q");
     }
@@ -37,25 +33,32 @@ export default function Header() {
     } else {
       setSearchParams(newParams, { replace: true });
     }
-    // Отключаем проверку зависимостей, чтобы избежать бесконечного цикла
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]); 
+  };
+
+  const { debounced: debouncedUpdateUrl, cancel } = useDebounce(updateUrl, 300);
+
+  // адрес поменялся — отложенное обновление со старым текстом уже не нужно
+  useEffect(() => cancel, [searchQuery, cancel]);
+
+  const handleSearchChange = (e) => {
+    setInputValue(e.target.value);
+    debouncedUpdateUrl(e.target.value);
+  };
 
   return (
     <header className="header">
       <div className="container header__inner">
-        
-        <Link to="/" className="header__logo">MegaMart</Link> 
-        
-        <input 
+        <Link to="/" className="header__logo">MegaMart</Link>
+
+        <input
           className="header__search"
           type="search"
           placeholder="Search essentials, groceries and more..."
           aria-label="Search products"
-          value={inputValue} 
-          onChange={(e) => setInputValue(e.target.value)} 
+          value={inputValue}
+          onChange={handleSearchChange}
         />
-        
+
         <Link to="/cart" className="header__cart" aria-label={`Cart, items: ${totalCartCount}`}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <circle cx="9" cy="21" r="1" />
@@ -65,7 +68,6 @@ export default function Header() {
           Cart
           <span className="header__badge">{totalCartCount}</span>
         </Link>
-        
       </div>
     </header>
   );

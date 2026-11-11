@@ -1,20 +1,30 @@
-import { useState, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 
-// хук для задержки значения (debounce)
-export function useDebounce(value, delay = 300) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+export function useDebounce(callback, delay = 300) {
+  const timerRef = useRef(null);
+  const callbackRef = useRef(callback);
 
+  // запоминаем самую свежую версию функции
   useEffect(() => {
-    // запускаем таймер
-    const timer = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
+    callbackRef.current = callback;
+  });
 
-    // если значение изменилось раньше, чем сработал таймер — очищаем его
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [value, delay]);
+  const cancel = useCallback(() => {
+    clearTimeout(timerRef.current);
+  }, []);
 
-  return debouncedValue;
+  const debounced = useCallback(
+    (...args) => {
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        callbackRef.current(...args);
+      }, delay);
+    },
+    [delay]
+  );
+
+  // при уходе со страницы снимаем таймер
+  useEffect(() => cancel, [cancel]);
+
+  return { debounced, cancel };
 }

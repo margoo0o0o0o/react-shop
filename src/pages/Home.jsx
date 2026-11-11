@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router"; 
 import ProductCard from "../components/ProductCard";
-import { useProducts } from "../hooks/useProducts"; // импортируем наш хук
+import { useProducts } from "../hooks/useProducts"; 
 
 export default function Home() {
   // используем хук вместо useEffect и useState
