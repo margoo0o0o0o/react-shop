@@ -1,0 +1,20 @@
+.favorites-page {
+  padding: 40px 0;
+}
+
+.favorites-page h1 {
+  margin-bottom: 30px;
+}
+
+.favorites-empty {
+  padding: 50px;
+  text-align: center;
+  background: var(--color-surface-grey);
+  border-radius: var(--radius);
+  margin-top: 40px;
+}
+
+.favorites-empty p {
+  font-size: var(--fs-lg);
+  margin-bottom: 20px;
+}
