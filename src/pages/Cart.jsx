@@ -1,17 +1,15 @@
 import { Link } from "react-router";
-import { useCart } from "../cart/useCart"; 
+import { useCart } from "../cart/useCart";
 import Button from "../components/Button";
 import "./Cart.css";
 
 export default function Cart() {
-  const { state, removeItem, changeQuantity, clearCart } = useCart();
-  
-  const totalPrice = state.items.reduce((sum, item) => sum + item.price * item.count, 0);
+  const { state, totalPrice, removeItem, changeQuantity, clearCart } = useCart();
 
   return (
     <div className="container cart-page">
       <h1>Cart</h1>
-      
+
       {state.items.length === 0 ? (
         <div className="cart-empty">
           <p>Your cart is empty</p>
@@ -48,7 +46,9 @@ export default function Cart() {
             <Button variant="outline" className="btn--full clear-cart-btn" onClick={clearCart}>
               Clear Cart
             </Button>
-            <Button variant="primary" className="btn--full">Checkout</Button>
+            <Link to="/checkout" className="btn btn--primary btn--full cart-checkout-link">
+              Checkout
+            </Link>
           </div>
         </div>
       )}

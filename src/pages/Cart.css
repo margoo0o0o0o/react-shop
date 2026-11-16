@@ -112,6 +112,12 @@
   margin-bottom: 10px;
 }
 
+.cart-checkout-link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
 @media (max-width: 768px) {
   .cart-layout {
     flex-direction: column;
