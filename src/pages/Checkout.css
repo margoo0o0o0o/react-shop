@@ -1,0 +1,132 @@
+.checkout-page {
+  padding: 40px 0;
+}
+
+.checkout-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+.checkout-form {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-field label {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.form-field__input {
+  width: 100%;
+  padding: 0.7rem var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+
+.form-field__input:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.form-field__input--error,
+.form-field__input--error:focus-visible {
+  border-color: #ff4d4f;
+}
+
+.form-field__error {
+  margin: 0;
+  color: #ff4d4f;
+  font-size: var(--fs-xs);
+}
+
+.checkout-summary {
+  flex: 1;
+  padding: 30px;
+  border-radius: var(--radius);
+  background: var(--color-surface-grey);
+}
+
+.checkout-summary h2 {
+  margin-top: 0;
+}
+
+.checkout-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkout-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkout-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.checkout-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkout-item__title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.checkout-item__meta {
+  margin: 2px 0 0;
+  color: var(--color-muted);
+  font-size: var(--fs-xs);
+}
+
+.checkout-item__total {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.checkout-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .checkout-layout {
+    flex-direction: column;
+  }
+  .checkout-form,
+  .checkout-summary {
+    width: 100%;
+  }
+}

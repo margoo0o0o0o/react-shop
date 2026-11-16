@@ -14,11 +14,13 @@ export function CartProvider({ children }) {
   const changeQuantity = (id, delta) => dispatch({ type: "UPDATE_QUANTITY", payload: { id, delta } });
   const clearCart = () => dispatch({ type: "CLEAR_CART" });
 
+  // оба значения считаем из списка, отдельно не храним
   const totalCartCount = state.items.reduce((sum, item) => sum + item.count, 0);
+  const totalPrice = state.items.reduce((sum, item) => sum + item.price * item.count, 0);
 
   return (
     <CartContext.Provider
-      value={{ state, totalCartCount, addItem, removeItem, changeQuantity, clearCart }}
+      value={{ state, totalCartCount, totalPrice, addItem, removeItem, changeQuantity, clearCart }}
     >
       {children}
     </CartContext.Provider>
