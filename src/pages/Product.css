@@ -59,10 +59,15 @@
   line-height: 1.6;
 }
 
-/* класс для страницы 404 и ошибок (вместо style) */
 .product-message {
   padding: 50px;
   text-align: center;
+}
+
+.product-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 @media (max-width: 768px) {

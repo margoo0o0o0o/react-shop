@@ -80,3 +80,8 @@
   padding: var(--space-3); 
   padding-top: 0; /* чтобы не было двойного отступа */
 }
+
+.card__buttons {
+  display: flex;
+  gap: 8px;
+}
